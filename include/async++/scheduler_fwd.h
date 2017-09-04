@@ -1,23 +1,3 @@
-// Copyright (c) 2015 Amanieu d'Antras
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 #ifndef ASYNCXX_H_
 # error "Do not include this header directly, include <async++.h> instead."
 #endif
@@ -41,7 +21,7 @@ two& is_scheduler_helper(int);
 template<typename T>
 one& is_scheduler_helper(...);
 template<typename T>
-struct is_scheduler: public std::integral_constant<bool, sizeof(is_scheduler_helper<T>(0)) - 1> {};
+struct is_scheduler : public std::integral_constant<bool, sizeof(is_scheduler_helper<T>(0)) - 1> {};
 
 // Singleton scheduler classes
 class thread_scheduler_impl {
@@ -71,8 +51,7 @@ struct threadpool_data;
 } // namespace detail
 
 // Run a task in the current thread as soon as it is scheduled
-inline detail::inline_scheduler_impl& inline_scheduler()
-{
+inline detail::inline_scheduler_impl& inline_scheduler() {
 	static detail::inline_scheduler_impl instance;
 	return instance;
 }
@@ -80,8 +59,7 @@ inline detail::inline_scheduler_impl& inline_scheduler()
 // Run a task in a separate thread. Note that this scheduler does not wait for
 // threads to finish at process exit. You must ensure that all threads finish
 // before ending the process.
-inline detail::thread_scheduler_impl& thread_scheduler()
-{
+inline detail::thread_scheduler_impl& thread_scheduler() {
 	static detail::thread_scheduler_impl instance;
 	return instance;
 }
@@ -97,8 +75,7 @@ LIBASYNC_EXPORT threadpool_scheduler& default_threadpool_scheduler();
 // that in that case async::default_scheduler should be declared before
 // including async++.h.
 #ifndef LIBASYNC_CUSTOM_DEFAULT_SCHEDULER
-inline threadpool_scheduler& default_scheduler()
-{
+inline threadpool_scheduler& default_scheduler() {
 	return default_threadpool_scheduler();
 }
 #endif

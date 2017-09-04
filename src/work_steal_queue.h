@@ -1,23 +1,3 @@
-// Copyright (c) 2015 Amanieu d'Antras
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 #ifndef ASYNCXX_H_
 # error "Do not include this header directly, include <async++.h> instead."
 #endif
@@ -42,26 +22,22 @@ class work_steal_queue {
 		circular_array(std::size_t n)
 			: items(n) {}
 
-		std::size_t size() const
-		{
+		std::size_t size() const {
 			return items.size();
 		}
 
-		void* get(std::size_t index)
-		{
+		void* get(std::size_t index) {
 			return items[index & (size() - 1)];
 		}
 
-		void put(std::size_t index, void* x)
-		{
+		void put(std::size_t index, void* x) {
 			items[index & (size() - 1)] = x;
 		}
 
 		// Growing the array returns a new circular_array object and keeps a
 		// linked list of all previous arrays. This is done because other threads
 		// could still be accessing elements from the smaller arrays.
-		circular_array* grow(std::size_t top, std::size_t bottom)
-		{
+		circular_array* grow(std::size_t top, std::size_t bottom) {
 			circular_array* new_array = new circular_array(size() * 2);
 			new_array->previous.reset(this);
 			for (std::size_t i = top; i != bottom; i++)
@@ -75,8 +51,7 @@ class work_steal_queue {
 
 	// Convert a 2's complement unsigned value to a signed value. We need to do
 	// this because (b - t) may not always be positive.
-	static std::ptrdiff_t to_signed(std::size_t x)
-	{
+	static std::ptrdiff_t to_signed(std::size_t x) {
 		// Unsigned to signed conversion is implementation-defined if the value
 		// doesn't fit, so we convert manually.
 		static_assert(static_cast<std::size_t>(PTRDIFF_MAX) + 1 == static_cast<std::size_t>(PTRDIFF_MIN), "Wrong integer wrapping behavior");
@@ -89,8 +64,7 @@ class work_steal_queue {
 public:
 	work_steal_queue()
 		: array(new circular_array(32)), top(0), bottom(0) {}
-	~work_steal_queue()
-	{
+	~work_steal_queue() {
 		// Free any unexecuted tasks
 		std::size_t b = bottom.load(std::memory_order_relaxed);
 		std::size_t t = top.load(std::memory_order_relaxed);
@@ -101,8 +75,7 @@ public:
 	}
 
 	// Push a task to the bottom of this thread's queue
-	void push(task_run_handle x)
-	{
+	void push(task_run_handle x) {
 		std::size_t b = bottom.load(std::memory_order_relaxed);
 		std::size_t t = top.load(std::memory_order_acquire);
 		circular_array* a = array.load(std::memory_order_relaxed);
@@ -121,8 +94,7 @@ public:
 	}
 
 	// Pop a task from the bottom of this thread's queue
-	task_run_handle pop()
-	{
+	task_run_handle pop() {
 		std::size_t b = bottom.load(std::memory_order_relaxed);
 
 		// Early exit if queue is empty
@@ -157,8 +129,7 @@ public:
 	}
 
 	// Steal a task from the top of this thread's queue
-	task_run_handle steal()
-	{
+	task_run_handle steal() {
 		// Loop while the compare_exchange fails. This is still lock-free because
 		// a fail means that another thread has sucessfully stolen a task.
 		while (true) {

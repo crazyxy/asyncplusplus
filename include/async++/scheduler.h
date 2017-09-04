@@ -1,23 +1,3 @@
-// Copyright (c) 2015 Amanieu d'Antras
-//
-// Permission is hereby granted, free of charge, to any person obtaining a copy
-// of this software and associated documentation files (the "Software"), to deal
-// in the Software without restriction, including without limitation the rights
-// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-// copies of the Software, and to permit persons to whom the Software is
-// furnished to do so, subject to the following conditions:
-//
-// The above copyright notice and this permission notice shall be included in
-// all copies or substantial portions of the Software.
-//
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-// AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-// LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-// OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
-// THE SOFTWARE.
-
 #ifndef ASYNCXX_H_
 # error "Do not include this header directly, include <async++.h> instead."
 #endif
@@ -40,12 +20,11 @@ class task_wait_handle {
 
 	// Execution function for use by wait handlers
 	template<typename Func>
-	struct wait_exec_func: private detail::func_base<Func> {
+	struct wait_exec_func : private detail::func_base<Func> {
 		template<typename F>
 		explicit wait_exec_func(F&& f)
 			: detail::func_base<Func>(std::forward<F>(f)) {}
-		void operator()(detail::task_base*)
-		{
+		void operator()(detail::task_base*) {
 			// Just call the function directly, all this wrapper does is remove
 			// the task_base* parameter.
 			this->get_func()();
@@ -57,21 +36,18 @@ public:
 		: handle(nullptr) {}
 
 	// Check if the handle is valid
-	explicit operator bool() const
-	{
+	explicit operator bool() const {
 		return handle != nullptr;
 	}
 
 	// Check if the task has finished executing
-	bool ready() const
-	{
+	bool ready() const {
 		return detail::is_finished(handle->state.load(std::memory_order_acquire));
 	}
 
 	// Queue a function to be executed when the task has finished executing.
 	template<typename Func>
-	void on_finish(Func&& func)
-	{
+	void on_finish(Func&& func) {
 		// Make sure the function type is callable
 		static_assert(detail::is_callable<Func()>::value, "Invalid function type passed to on_finish()");
 
@@ -82,7 +58,7 @@ public:
 };
 
 // Wait handler function prototype
-typedef void (*wait_handler)(task_wait_handle t);
+typedef void(*wait_handler)(task_wait_handle t);
 
 // Set a wait handler to control what a task does when it has "free time", which
 // is when it is waiting for another task to complete. The wait handler can do
@@ -108,36 +84,31 @@ public:
 	task_run_handle() = default;
 	task_run_handle(task_run_handle&& other) LIBASYNC_NOEXCEPT
 		: handle(std::move(other.handle)) {}
-	task_run_handle& operator=(task_run_handle&& other) LIBASYNC_NOEXCEPT
-	{
+	task_run_handle& operator=(task_run_handle&& other) LIBASYNC_NOEXCEPT {
 		handle = std::move(other.handle);
 		return *this;
 	}
 
 	// If the task is not executed, cancel it with an exception
-	~task_run_handle()
-	{
+	~task_run_handle() {
 		if (handle)
 			handle->vtable->cancel(handle.get(), std::make_exception_ptr(task_not_executed()));
 	}
 
 	// Check if the handle is valid
-	explicit operator bool() const
-	{
+	explicit operator bool() const {
 		return handle != nullptr;
 	}
 
 	// Run the task and release the handle
-	void run()
-	{
+	void run() {
 		handle->vtable->run(handle.get());
 		handle = nullptr;
 	}
 
 	// Run the task but run the given wait handler when waiting for a task,
 	// instead of just sleeping.
-	void run_with_wait_handler(wait_handler handler)
-	{
+	void run_with_wait_handler(wait_handler handler) {
 		wait_handler old = set_thread_wait_handler(handler);
 		run();
 		set_thread_wait_handler(old);
@@ -145,12 +116,10 @@ public:
 
 	// Conversion to and from void pointer. This allows the task handle to be
 	// sent through C APIs which don't preserve types.
-	void* to_void_ptr()
-	{
+	void* to_void_ptr() {
 		return handle.release();
 	}
-	static task_run_handle from_void_ptr(void* ptr)
-	{
+	static task_run_handle from_void_ptr(void* ptr) {
 		return task_run_handle(detail::task_ptr(static_cast<detail::task_base*>(ptr)));
 	}
 };
@@ -159,15 +128,13 @@ namespace detail {
 
 // Schedule a task for execution using its scheduler
 template<typename Sched>
-void schedule_task(Sched& sched, task_ptr t)
-{
+void schedule_task(Sched& sched, task_ptr t) {
 	static_assert(is_scheduler<Sched>::value, "Type is not a valid scheduler");
 	sched.schedule(task_run_handle(std::move(t)));
 }
 
 // Inline scheduler implementation
-inline void inline_scheduler_impl::schedule(task_run_handle t)
-{
+inline void inline_scheduler_impl::schedule(task_run_handle t) {
 	t.run();
 }
 
