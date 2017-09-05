@@ -15,3 +15,7 @@
 # Generated Files for VS Projetc
 .vs/
 CppProperties.json
+CMakeSettings.json
+
+# Exclude library
+library/**/
