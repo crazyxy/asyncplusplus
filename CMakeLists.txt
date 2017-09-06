@@ -1,8 +1,10 @@
 cmake_minimum_required(VERSION 3.1)
 
-set(PROJECT_NAME asyncxx)
+set(debug_mode true)
 
-project(${PROJECT_NAME} C CXX)
+set(asyncxx asyncxx)
+
+project(${asyncxx} C CXX)
 
 # The version number.
 set (ASYNCXX_VERSION_MAJOR 0)
@@ -21,12 +23,15 @@ if (APPLE)
 	endif()
 endif()
 
-# Import sub directory into the project
-set(LIB_DIR ${PROJECT_SOURCE_DIR}/library)
-add_subdirectory(${LIB_DIR})
 
 # Add all source and header files so IDEs can see them
-file(GLOB ASYNCXX_INCLUDE ${PROJECT_SOURCE_DIR}/include/async++/*.h)
+set (asyncxx_include_dir ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/async++)
+
+file(GLOB ASYNCXX_INCLUDE 
+		${PROJECT_SOURCE_DIR}/include/async++/*.h
+		${PROJECT_SOURCE_DIR}/include/async++.h		
+)
+
 file(GLOB ASYNCXX_SRC 
 		${PROJECT_SOURCE_DIR}/src/*.h 
 		${PROJECT_SOURCE_DIR}/src/*.cpp
@@ -34,8 +39,25 @@ file(GLOB ASYNCXX_SRC
 source_group(include FILES ${PROJECT_SOURCE_DIR}/include/async++.h ${ASYNCXX_INCLUDE})
 source_group(src FILES ${ASYNCXX_SRC})
 
+
 # Output of the project. Library
 add_library(${PROJECT_NAME} ${PROJECT_SOURCE_DIR}/include/async++.h ${ASYNCXX_INCLUDE} ${ASYNCXX_SRC})
+
+if(debug_mode)
+	message(STATUS "library name: " ${PROJECT_NAME})
+endif()
+
+
+#Test
+enable_testing()
+
+# Import sub directory into the project
+set(LIB_DIR ${PROJECT_SOURCE_DIR}/library)
+add_subdirectory(${LIB_DIR})
+
+set(TEST_DIR ${PROJECT_SOURCE_DIR}/test)
+add_subdirectory(${TEST_DIR})
+
 
 # asyncxx only depends on the C++11 standard libraries, but some implementations
 # require the -pthread compiler flag to enable threading functionality.
@@ -85,15 +107,6 @@ if (NOT USE_CXX_EXCEPTIONS)
 	endif()
 endif()
 
-#Test
-enable_testing()
-set(PROJECT_TEST_NAME ${PROJECT_NAME_STR}_test)
-include_directories(${GTEST_INCLUDE_DIRS} ${PROJECT_SOURCE_DIR}/include/async++)
-file(GLOB TEST_SRC_FILES ${PROJECT_SOURCE_DIR}/test/*.cpp)
-add_executable(${PROJECT_TEST_NAME} ${TEST_SRC_FILES})
-target_link_libraries(${PROJECT_TEST_NAME} Async++ libgtest libgmock)
-#target_include_directories(${PROJECT_TEST_NAME} ${PROJECT_SOURCE_DIR}/include)
-add_test(test ${PROJECT_TEST_NAME})
 
 # Install the library and produce a CMake export script
 install(TARGETS ${PROJECT_NAME}
@@ -115,6 +128,9 @@ else()
 	install(FILES ${PROJECT_SOURCE_DIR}/include/async++.h DESTINATION include)
 	install(FILES ${ASYNCXX_INCLUDE} DESTINATION include/async++)
 endif()
+
+
+
 
 SET(CPACK_GENERATOR "DEB")
 SET(CPACK_DEBIAN_PACKAGE_MAINTAINER "none") #required

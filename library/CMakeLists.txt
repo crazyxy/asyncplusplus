@@ -23,23 +23,36 @@ ExternalProject_Add(googletest
 
 ExternalProject_Get_Property(googletest source_dir binary_dir)
 
-message(STATUS "source_dir: " ${source_dir})
-message(STATUS "binary_dir: " ${binary_dir})
+if(debug_mode)
+	message(STATUS "source_dir: " ${source_dir})
+	message(STATUS "binary_dir: " ${binary_dir})
+endif()
 
 add_library(libgtest IMPORTED STATIC GLOBAL)
 add_dependencies(libgtest googletest)
 
-set_target_properties(libgtest PROPERTIES
-	"IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/gtest.lib"
-	"IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
-
 add_library(libgmock IMPORTED STATIC GLOBAL)
 add_dependencies(libgmock googletest)
-set_target_properties(libgmock PROPERTIES
-	"IMPORTED_LOCATION" "${binary_dir}/googlemock/gmock.lib"
-	"IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
-)
 
-set(GTEST_INCLUDE_DIRS ${source_dir}/googletest/include PARENT_SCOPE)
-set(GTEST_LIB_DIR ${binary_dir}/googlemock/gtest PARENT_SCOPE)
+if(WIN32)
+	set_target_properties(libgtest PROPERTIES
+		"IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/gtest.lib"
+		"IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+	)
+	set_target_properties(libgmock PROPERTIES
+		"IMPORTED_LOCATION" "${binary_dir}/googlemock/gmock.lib"
+		"IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+	)
+else()
+	set_target_properties(libgtest PROPERTIES
+		"IMPORTED_LOCATION" "${binary_dir}/googlemock/gtest/libgtest.a"
+		"IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+	)
+	set_target_properties(libgmock PROPERTIES
+		"IMPORTED_LOCATION" "${binary_dir}/googlemock/libgmock.a"
+		"IMPORTED_LINK_INTERFACE_LIBRARIES" "${CMAKE_THREAD_LIBS_INIT}"
+	)
+endif()
+
+set(gtest_include_dirs ${source_dir}/googletest/include PARENT_SCOPE)
+set(gtest_lib_dir ${binary_dir}/googlemock/gtest PARENT_SCOPE)
