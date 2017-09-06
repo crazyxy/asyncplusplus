@@ -19,3 +19,6 @@ CMakeSettings.json
 
 # Exclude library
 library/**/
+
+# Exclude build
+build/

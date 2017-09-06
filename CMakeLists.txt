@@ -11,7 +11,9 @@ set (ASYNCXX_VERSION_MAJOR 0)
 set (ASYNCXX_VERSION_MINOR 9)
 
 set(CMAKE_CXX_FLAGS_RELEASE "/MT")
-set(CMAKE_CXX_FLAGS_DEBUG "/MTd")
+set(CMAKE_CXX_FLAGS_DEBUG "/MTd -ggdb")
+set(CMAKE_CXX_STANDARD 11)
+
 
 option(BUILD_SHARED_LIBS "Build asyncxx as a shared library" ON)
 option(USE_CXX_EXCEPTIONS "Enable C++ exception support" ON)
@@ -27,13 +29,13 @@ endif()
 # Add all source and header files so IDEs can see them
 set (asyncxx_include_dir ${PROJECT_SOURCE_DIR}/include ${PROJECT_SOURCE_DIR}/include/async++)
 
-file(GLOB ASYNCXX_INCLUDE 
+file(GLOB ASYNCXX_INCLUDE
 		${PROJECT_SOURCE_DIR}/include/async++/*.h
-		${PROJECT_SOURCE_DIR}/include/async++.h		
+		${PROJECT_SOURCE_DIR}/include/async++.h
 )
 
-file(GLOB ASYNCXX_SRC 
-		${PROJECT_SOURCE_DIR}/src/*.h 
+file(GLOB ASYNCXX_SRC
+		${PROJECT_SOURCE_DIR}/src/*.h
 		${PROJECT_SOURCE_DIR}/src/*.cpp
 )
 source_group(include FILES ${PROJECT_SOURCE_DIR}/include/async++.h ${ASYNCXX_INCLUDE})
