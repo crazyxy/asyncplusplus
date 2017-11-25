@@ -1,0 +1,6 @@
+# VS project files
+.vs/
+Debug/
+
+# Libraries
+library/**/
